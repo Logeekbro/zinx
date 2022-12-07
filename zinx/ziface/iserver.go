@@ -1,5 +1,6 @@
 package ziface
 
+// IServer 定义服务器模块的抽象层
 type IServer interface {
 	// Start 启动服务器
 	Start()

@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"zinx/ziface"
@@ -15,6 +16,15 @@ type Server struct {
 	IP string
 	// 服务器监听的端口
 	Port int
+}
+
+// 回调方法，暂时写死
+func callback(conn *net.TCPConn, data []byte, cnt int) error {
+	fmt.Println("Callback running...")
+	if _, err := conn.Write(data[:cnt]); err != nil {
+		return errors.New("CallBack error")
+	}
+	return nil
 }
 
 func (s *Server) Start() {
@@ -33,6 +43,7 @@ func (s *Server) Start() {
 		return
 	}
 	fmt.Println("Start listening:", fmt.Sprintf("%s:%d", s.IP, s.Port))
+	var connID uint32 = 0
 	// 3、阻塞地等待客户端链接，处理客户端业务(读写)
 	for {
 		conn, err := listener.AcceptTCP()
@@ -40,22 +51,9 @@ func (s *Server) Start() {
 			fmt.Println("Accept tcp error:", err)
 			continue
 		}
-		// 已经与客户端建立连接，先做一个最基本的最大512字节回写任务
-		go func() {
-			for {
-				buf := make([]byte, 512)
-				cnt, err := conn.Read(buf)
-				if err != nil {
-					fmt.Println("Recv buf error:", err)
-					break
-				}
-				fmt.Printf("Recv client buf: %s, cnt=%d\n", buf, cnt)
-				if _, err := conn.Write(buf[:cnt]); err != nil {
-					fmt.Println("Write buf error:", err)
-				}
-			}
-
-		}()
+		newConn := NewConnection(conn, connID, callback)
+		connID++
+		go newConn.Start()
 	}
 }
 
