@@ -10,16 +10,16 @@ import (
 type Connection struct {
 	Conn     *net.TCPConn
 	ConnID   uint32
-	Callback ziface.HandleFunc
 	isClosed bool
 	ExitChan chan bool
+	Router   ziface.IRouter
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, callback ziface.HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
 	return &Connection{
 		Conn:     conn,
 		ConnID:   connID,
-		Callback: callback,
+		Router:   router,
 		isClosed: false,
 		ExitChan: make(chan bool, 1),
 	}
@@ -31,7 +31,7 @@ func (c *Connection) startReader() {
 	defer c.Stop()
 	for {
 		buf := make([]byte, 512)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -40,9 +40,16 @@ func (c *Connection) startReader() {
 				continue
 			}
 		}
-		if err = c.Callback(c.Conn, buf, cnt); err != nil {
-			fmt.Println("Callback error:", err)
+		request := Request{
+			Conn: c,
+			Data: buf,
 		}
+
+		go func(req ziface.IRequest) {
+			c.Router.PreHandle(req)
+			c.Router.Handle(req)
+			c.Router.PostHandle(req)
+		}(&request)
 	}
 }
 

@@ -16,6 +16,8 @@ type Server struct {
 	IP string
 	// 服务器监听的端口
 	Port int
+	// 服务器路由方法
+	Router ziface.IRouter
 }
 
 // 回调方法，暂时写死
@@ -51,7 +53,7 @@ func (s *Server) Start() {
 			fmt.Println("Accept tcp error:", err)
 			continue
 		}
-		newConn := NewConnection(conn, connID, callback)
+		newConn := NewConnection(conn, connID, s.Router)
 		connID++
 		go newConn.Start()
 	}
@@ -71,6 +73,11 @@ func (s *Server) Serve() {
 	select {}
 }
 
+func (s *Server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router success!")
+}
+
 // NewServer 初始化Server函数
 func NewServer(name string) ziface.IServer {
 	return &Server{
@@ -78,5 +85,6 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
 }
