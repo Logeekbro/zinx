@@ -27,7 +27,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Con
 
 func (c *Connection) startReader() {
 	fmt.Println("Starting read data from:", c.RemoteAddr())
-	defer fmt.Println("Read over, exit...")
+	defer fmt.Printf("Connection(ID:%d) is closed\n", c.ConnID)
 	defer c.Stop()
 	for {
 		buf := make([]byte, 512)
@@ -85,7 +85,6 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c *Connection) Send(data []byte) error {
-	//TODO implement me
-	panic("implement me")
+func (c *Connection) Send(data []byte) (int, error) {
+	return c.Conn.Write(data)
 }

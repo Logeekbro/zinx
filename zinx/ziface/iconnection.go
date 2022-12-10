@@ -7,6 +7,7 @@ import "net"
 type IConnection interface {
 	// Start 让当前连接开始工作
 	Start()
+
 	// Stop 让当前连接停止工作
 	Stop()
 
@@ -20,5 +21,5 @@ type IConnection interface {
 	RemoteAddr() net.Addr
 
 	// Send 发送数据给客户端
-	Send(data []byte) error
+	Send(data []byte) (int, error)
 }
