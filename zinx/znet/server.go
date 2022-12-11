@@ -1,9 +1,9 @@
 package znet
 
 import (
-	"errors"
 	"fmt"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -15,22 +15,15 @@ type Server struct {
 	// 服务器IP
 	IP string
 	// 服务器监听的端口
-	Port int
+	Port uint16
 	// 服务器路由方法
 	Router ziface.IRouter
 }
 
-// 回调方法，暂时写死
-func callback(conn *net.TCPConn, data []byte, cnt int) error {
-	fmt.Println("Callback running...")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		return errors.New("CallBack error")
-	}
-	return nil
-}
-
 func (s *Server) Start() {
-	fmt.Println("Starting server:", s.Name)
+	fmt.Println("[Zinx]Starting server:", s.Name)
+	fmt.Println("[Zinx]Version:", utils.GlobalObject.Version)
+	fmt.Printf("[Zinx]MaxConn: %d, MaxPackageSize: %d\n", utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 	// 服务器启动步骤
 	// 1、获取一个TCPAddr
 	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
@@ -44,7 +37,7 @@ func (s *Server) Start() {
 		fmt.Println("Listen", s.IP, "error:", err)
 		return
 	}
-	fmt.Println("Start listening:", fmt.Sprintf("%s:%d", s.IP, s.Port))
+	fmt.Println("[Zinx]Start listening:", fmt.Sprintf("%s:%d", s.IP, s.Port))
 	var connID uint32 = 0
 	// 3、阻塞地等待客户端链接，处理客户端业务(读写)
 	for {
@@ -81,10 +74,10 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 // NewServer 初始化Server函数
 func NewServer(name string) ziface.IServer {
 	return &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
 		Router:    nil,
 	}
 }
