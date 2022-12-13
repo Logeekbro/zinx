@@ -57,5 +57,5 @@ func init() {
 		MaxPackageSize: 4096,
 	}
 	// 应该尝试从 conf/zinx.json 中加载一些用户自定义的参数
-	GlobalObject.LoadConfig()
+	//GlobalObject.LoadConfig()
 }
