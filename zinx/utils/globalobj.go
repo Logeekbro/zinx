@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"syscall"
 	"zinx/ziface"
 )
 
@@ -36,7 +37,11 @@ var GlobalObject *GlobalObj
 func (g *GlobalObj) LoadConfig() {
 	data, err := os.ReadFile("conf/zinx.json")
 	if err != nil {
+		if err == syscall.ERROR_FILE_NOT_FOUND {
+			fmt.Println("config file not found, using default config...")
+		}
 		panic(fmt.Sprintln("Read zinx.json failed:", err))
+
 	}
 	// 将json文件数据解析到struct中
 	err = json.Unmarshal(data, GlobalObject)
@@ -57,5 +62,5 @@ func init() {
 		MaxPackageSize: 4096,
 	}
 	// 应该尝试从 conf/zinx.json 中加载一些用户自定义的参数
-	//GlobalObject.LoadConfig()
+	GlobalObject.LoadConfig()
 }

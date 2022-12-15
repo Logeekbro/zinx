@@ -6,6 +6,14 @@ type Message struct {
 	Data    []byte // 消息数据
 }
 
+// NewMessage 创建一个新的消息对象
+func NewMessage(id uint32, data []byte) *Message {
+	return &Message{
+		Id:   id,
+		Data: data,
+	}
+}
+
 func (m *Message) GetId() uint32 {
 	return m.Id
 }

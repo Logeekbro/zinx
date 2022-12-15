@@ -20,6 +20,6 @@ type IConnection interface {
 	// RemoteAddr 获取客户端的TCP状态 IP Port
 	RemoteAddr() net.Addr
 
-	// Send 发送数据给客户端
-	Send(data []byte) (int, error)
+	// SendMsg 发送封装好的数据包给客户端
+	SendMsg(id uint32, data []byte) error
 }

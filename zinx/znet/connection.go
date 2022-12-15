@@ -1,10 +1,9 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"net"
-	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -15,6 +14,8 @@ type Connection struct {
 	ExitChan chan bool
 	Router   ziface.IRouter
 }
+
+var dp = NewDataPack()
 
 func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
 	return &Connection{
@@ -31,19 +32,34 @@ func (c *Connection) startReader() {
 	defer fmt.Printf("Connection(ID:%d) is closed\n", c.ConnID)
 	defer c.Stop()
 	for {
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
+		//buf := make([]byte, utils.GlobalObject.MaxPackageSize)
+		//_, err := c.Conn.Read(buf)
+		//if err != nil {
+		//	if err == io.EOF {
+		//		break
+		//	} else {
+		//		fmt.Printf("Read data error:%s, ConnID=%d\n", err, c.ConnID)
+		//		continue
+		//	}
+		//}
+		headData := make([]byte, dp.GetHeadLen())
+		_, err := c.GetTCPConnection().Read(headData)
 		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				fmt.Printf("Read data error:%s, ConnID=%d\n", err, c.ConnID)
-				continue
-			}
+			fmt.Println("Read headData error:", err)
 		}
+		msg, err := dp.UnPack(headData)
+		if err != nil {
+			fmt.Println("Unpack headData error:", err)
+		}
+		data := make([]byte, msg.GetDataLen())
+		_, err = c.GetTCPConnection().Read(data)
+		if err != nil {
+			fmt.Println("Read data error:", err)
+		}
+		msg.SetData(data)
 		request := Request{
 			Conn: c,
-			Data: buf,
+			msg:  msg,
 		}
 
 		go func(req ziface.IRequest) {
@@ -86,6 +102,14 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c *Connection) Send(data []byte) (int, error) {
-	return c.Conn.Write(data)
+func (c *Connection) SendMsg(id uint32, data []byte) error {
+	binaryMsg, err := dp.Pack(NewMessage(id, data))
+	if err != nil {
+		return errors.New(fmt.Sprintln("Pack msg error:", err))
+	}
+	_, err = c.GetTCPConnection().Write(binaryMsg)
+	if err != nil {
+		return errors.New(fmt.Sprintln("Send msg to client error:", err))
+	}
+	return nil
 }

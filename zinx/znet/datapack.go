@@ -10,6 +10,11 @@ import (
 type DataPack struct {
 }
 
+// NewDataPack 创建新的封包、拆包对象
+func NewDataPack() *DataPack {
+	return &DataPack{}
+}
+
 func (d *DataPack) GetHeadLen() uint32 {
 	// DataLen uint32(4 bytes) + DataId uint32(4 bytes)
 	return 8

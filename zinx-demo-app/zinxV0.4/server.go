@@ -11,21 +11,21 @@ type PingRouter struct {
 }
 
 func (router *PingRouter) PreHandle(r ziface.IRequest) {
-	_, err := r.GetConnection().Send([]byte("before ping...\n"))
+	err := r.GetConnection().SendMsg(r.GetMsgId(), []byte("before ping...\n"))
 	if err != nil {
 		fmt.Println("callback PreHandle error:", err)
 	}
 }
 
 func (router *PingRouter) Handle(r ziface.IRequest) {
-	_, err := r.GetConnection().Send([]byte("ping...\n"))
+	err := r.GetConnection().SendMsg(r.GetMsgId(), []byte("ping...\n"))
 	if err != nil {
 		fmt.Println("callback Handle error:", err)
 	}
 }
 
 func (router *PingRouter) PostHandle(r ziface.IRequest) {
-	_, err := r.GetConnection().Send([]byte("after ping...\n"))
+	err := r.GetConnection().SendMsg(r.GetMsgId(), []byte("after ping...\n"))
 	if err != nil {
 		fmt.Println("callback PostHandle error:", err)
 	}
