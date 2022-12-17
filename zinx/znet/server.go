@@ -72,9 +72,13 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 }
 
 // NewServer 初始化Server函数
-func NewServer(name string) ziface.IServer {
+func NewServer(name ...string) ziface.IServer {
+	// 没在代码中声明服务器名称时使用配置文件中的名称
+	if len(name) == 0 {
+		name[0] = utils.GlobalObject.Name
+	}
 	return &Server{
-		Name:      utils.GlobalObject.Name,
+		Name:      name[0],
 		IPVersion: "tcp4",
 		IP:        utils.GlobalObject.Host,
 		Port:      utils.GlobalObject.TcpPort,
