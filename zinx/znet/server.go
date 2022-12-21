@@ -75,6 +75,7 @@ func (s *Server) AddRouter(router ziface.IRouter) {
 func NewServer(name ...string) ziface.IServer {
 	// 没在代码中声明服务器名称时使用配置文件中的名称
 	if len(name) == 0 {
+		name = make([]string, 1)
 		name[0] = utils.GlobalObject.Name
 	}
 	return &Server{
