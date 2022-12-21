@@ -10,9 +10,12 @@ import (
 type DataPack struct {
 }
 
-// NewDataPack 创建新的封包、拆包对象
+// DataPack的实例化对象
+var dataPackObj = &DataPack{}
+
+// NewDataPack 获取用于封包、拆包的单例对象
 func NewDataPack() *DataPack {
-	return &DataPack{}
+	return dataPackObj
 }
 
 func (d *DataPack) GetHeadLen() uint32 {
