@@ -46,15 +46,18 @@ func (c *Connection) startReader() {
 		_, err := c.GetTCPConnection().Read(headData)
 		if err != nil {
 			fmt.Println("Read headData error:", err)
+			return
 		}
 		msg, err := dp.UnPack(headData)
 		if err != nil {
 			fmt.Println("Unpack headData error:", err)
+			return
 		}
 		data := make([]byte, msg.GetDataLen())
 		_, err = c.GetTCPConnection().Read(data)
 		if err != nil {
 			fmt.Println("Read data error:", err)
+			return
 		}
 		msg.SetData(data)
 		request := Request{
@@ -73,7 +76,7 @@ func (c *Connection) startReader() {
 func (c *Connection) Start() {
 	fmt.Printf("Connection starting(ID:%d)...\n", c.ConnID)
 	// 启动从当前连接读数据的业务
-	go c.startReader()
+	c.startReader()
 
 	// TODO 启动从当前连接写数据的业务
 
