@@ -13,7 +13,7 @@ type PingRouter struct {
 func (router *PingRouter) Handle(r ziface.IRequest) {
 	err := r.GetConnection().SendMsg(r.GetMsgId(), []byte("ping...ping...ping...\n"))
 	if err != nil {
-		fmt.Println("callback Handle error:", err)
+		fmt.Println("Callback Handle error:", err)
 	}
 }
 
