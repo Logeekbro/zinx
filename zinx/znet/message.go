@@ -9,8 +9,9 @@ type Message struct {
 // NewMessage 创建一个新的消息对象
 func NewMessage(id uint32, data []byte) *Message {
 	return &Message{
-		Id:   id,
-		Data: data,
+		Id:      id,
+		Data:    data,
+		DataLen: uint32(len(data)),
 	}
 }
 
