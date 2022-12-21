@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"syscall"
 	"zinx/ziface"
 )
 
@@ -37,11 +36,8 @@ var GlobalObject *GlobalObj
 func (g *GlobalObj) LoadConfig() {
 	data, err := os.ReadFile("conf/zinx.json")
 	if err != nil {
-		if err == syscall.ERROR_FILE_NOT_FOUND {
-			fmt.Println("config file not found, using default config...")
-		}
+		// TODO 找不到配置文件时应使用默认配置
 		panic(fmt.Sprintln("Read zinx.json failed:", err))
-
 	}
 	// 将json文件数据解析到struct中
 	err = json.Unmarshal(data, GlobalObject)
@@ -57,7 +53,7 @@ func init() {
 		Host:           "0.0.0.0",
 		TcpPort:        9999,
 		Name:           "ZinxServerApp",
-		Version:        "V0.4",
+		Version:        "V0.5",
 		MaxConn:        1000,
 		MaxPackageSize: 4096,
 	}
