@@ -3,6 +3,7 @@ package znet
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"zinx/ziface"
 )
@@ -35,7 +36,11 @@ func (c *Connection) startReader() {
 		headData := make([]byte, dp.GetHeadLen())
 		_, err := c.GetTCPConnection().Read(headData)
 		if err != nil {
-			fmt.Println("Read headData error:", err)
+			if err == io.EOF {
+
+			} else {
+				fmt.Println("Read headData error:", err)
+			}
 			return
 		}
 		msg, err := dp.UnPack(headData)
@@ -46,8 +51,11 @@ func (c *Connection) startReader() {
 		data := make([]byte, msg.GetDataLen())
 		_, err = c.GetTCPConnection().Read(data)
 		if err != nil {
-			fmt.Println("Read data error:", err)
-			return
+			if err == io.EOF {
+
+			} else {
+				fmt.Println("Read headData error:", err)
+			}
 		}
 		msg.SetData(data)
 		request := Request{
