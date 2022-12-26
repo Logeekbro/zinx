@@ -10,8 +10,8 @@ type MsgHandle struct {
 	Apis map[uint32]ziface.IRouter
 }
 
-// NewMsgHandle 创建/初始化 MsgHandle的方法
-func NewMsgHandle() *MsgHandle {
+// NewMsgHandler 创建/初始化 MsgHandle的方法
+func NewMsgHandler() *MsgHandle {
 	return &MsgHandle{Apis: make(map[uint32]ziface.IRouter)}
 }
 

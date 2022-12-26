@@ -16,8 +16,8 @@ type Server struct {
 	IP string
 	// 服务器监听的端口
 	Port uint16
-	// 服务器路由方法
-	Router ziface.IRouter
+	// 当前server的消息管理模块，用来绑定MsgId和对应的业务处理业务API关系
+	MsgHandler ziface.IMsgHandle
 }
 
 func (s *Server) Start() {
@@ -46,7 +46,7 @@ func (s *Server) Start() {
 			fmt.Println("Accept tcp error:", err)
 			continue
 		}
-		newConn := NewConnection(conn, connID, s.Router)
+		newConn := NewConnection(conn, connID, s.MsgHandler)
 		connID++
 		go newConn.Start()
 	}
@@ -66,8 +66,8 @@ func (s *Server) Serve() {
 	select {}
 }
 
-func (s *Server) AddRouter(router ziface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
+	s.MsgHandler.AddRouter(msgId, router)
 	fmt.Println("Add Router success!")
 }
 
@@ -79,10 +79,10 @@ func NewServer(name ...string) ziface.IServer {
 		name[0] = utils.GlobalObject.Name
 	}
 	return &Server{
-		Name:      name[0],
-		IPVersion: "tcp4",
-		IP:        utils.GlobalObject.Host,
-		Port:      utils.GlobalObject.TcpPort,
-		Router:    nil,
+		Name:       name[0],
+		IPVersion:  "tcp4",
+		IP:         utils.GlobalObject.Host,
+		Port:       utils.GlobalObject.TcpPort,
+		MsgHandler: NewMsgHandler(),
 	}
 }

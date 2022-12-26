@@ -8,22 +8,22 @@ import (
 )
 
 type Connection struct {
-	Conn     *net.TCPConn
-	ConnID   uint32
-	isClosed bool
-	ExitChan chan bool
-	Router   ziface.IRouter
+	Conn       *net.TCPConn
+	ConnID     uint32
+	isClosed   bool
+	ExitChan   chan bool
+	MsgHandler ziface.IMsgHandle
 }
 
 var dp = NewDataPack()
 
-func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	return &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		Router:   router,
-		isClosed: false,
-		ExitChan: make(chan bool, 1),
+		Conn:       conn,
+		ConnID:     connID,
+		MsgHandler: msgHandler,
+		isClosed:   false,
+		ExitChan:   make(chan bool, 1),
 	}
 }
 
@@ -32,16 +32,6 @@ func (c *Connection) startReader() {
 	defer fmt.Printf("Connection(ID:%d) is closed\n", c.ConnID)
 	defer c.Stop()
 	for {
-		//buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		//_, err := c.Conn.Read(buf)
-		//if err != nil {
-		//	if err == io.EOF {
-		//		break
-		//	} else {
-		//		fmt.Printf("Read data error:%s, ConnID=%d\n", err, c.ConnID)
-		//		continue
-		//	}
-		//}
 		headData := make([]byte, dp.GetHeadLen())
 		_, err := c.GetTCPConnection().Read(headData)
 		if err != nil {
@@ -64,12 +54,8 @@ func (c *Connection) startReader() {
 			Conn: c,
 			msg:  msg,
 		}
-
-		go func(req ziface.IRequest) {
-			c.Router.PreHandle(req)
-			c.Router.Handle(req)
-			c.Router.PostHandle(req)
-		}(&request)
+		// 根据MsgId找到对应的处理API 执行
+		go c.MsgHandler.DoMsgHandler(&request)
 	}
 }
 
