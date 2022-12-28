@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"zinx/ziface"
+	"io/fs"
 )
 
 /**
@@ -36,8 +37,14 @@ var GlobalObject *GlobalObj
 func (g *GlobalObj) LoadConfig() {
 	data, err := os.ReadFile("conf/zinx.json")
 	if err != nil {
-		// TODO 找不到配置文件时应使用默认配置
-		panic(fmt.Sprintln("Read zinx.json failed:", err))
+		// 找不到配置文件时使用默认配置
+		if _, ok := err.(*fs.PathError); ok {
+			fmt.Println("zinx.json not found, using default config...")
+			return
+		} else {
+			panic(fmt.Sprintln("Read zinx.json failed:", err))
+		}
+		
 	}
 	// 将json文件数据解析到struct中
 	err = json.Unmarshal(data, GlobalObject)
