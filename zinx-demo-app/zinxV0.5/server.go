@@ -19,6 +19,6 @@ func (router *PingRouter) Handle(r ziface.IRequest) {
 
 func main() {
 	s := znet.NewServer()
-	s.AddRouter(&PingRouter{})
+	s.AddRouter(1, &PingRouter{})
 	s.Serve()
 }
