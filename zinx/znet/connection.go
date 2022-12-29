@@ -90,10 +90,10 @@ func (c *Connection) startReader() {
 func (c *Connection) Start() {
 	fmt.Printf("Connection starting(ID:%d)...\n", c.ConnID)
 	// 启动从当前连接读数据的业务
-	c.startReader()
+	go c.startReader()
 
 	// 启动从当前连接写数据的业务
-	c.startWriter()
+	go c.startWriter()
 }
 
 func (c *Connection) Stop() {
