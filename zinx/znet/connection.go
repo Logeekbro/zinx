@@ -13,6 +13,7 @@ type Connection struct {
 	ConnID     uint32
 	isClosed   bool
 	ExitChan   chan bool
+	msgChan    chan []byte // 无缓冲的管道，用于读、写协程间的通信
 	MsgHandler ziface.IMsgHandle
 }
 
@@ -28,9 +29,27 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 	}
 }
 
+func (c *Connection) startWriter() {
+	fmt.Println("Starting write data to:", c.RemoteAddr())
+	defer fmt.Printf("Connection(ID:%d) Writer is closed\n", c.ConnID)
+	for {
+		select {
+		case data := <-c.msgChan:
+			if _, err := c.GetTCPConnection().Write(data); err != nil {
+				fmt.Println("Write data error:", err)
+				return
+			}
+		case <-c.ExitChan:
+			// close(ExitChan)时会执行到此处
+			fmt.Println("Writer exit...")
+			return
+		}
+	}
+}
+
 func (c *Connection) startReader() {
 	fmt.Println("Starting read data from:", c.RemoteAddr())
-	defer fmt.Printf("Connection(ID:%d) is closed\n", c.ConnID)
+	defer fmt.Printf("Connection(ID:%d) Reader is closed\n", c.ConnID)
 	defer c.Stop()
 	for {
 		headData := make([]byte, dp.GetHeadLen())
@@ -56,6 +75,7 @@ func (c *Connection) startReader() {
 			} else {
 				fmt.Println("Read headData error:", err)
 			}
+			return
 		}
 		msg.SetData(data)
 		request := Request{
@@ -72,8 +92,8 @@ func (c *Connection) Start() {
 	// 启动从当前连接读数据的业务
 	c.startReader()
 
-	// TODO 启动从当前连接写数据的业务
-
+	// 启动从当前连接写数据的业务
+	c.startWriter()
 }
 
 func (c *Connection) Stop() {
@@ -84,6 +104,7 @@ func (c *Connection) Stop() {
 	c.Conn.Close()
 	// 回收资源
 	close(c.ExitChan)
+	close(c.msgChan)
 
 }
 
@@ -104,9 +125,6 @@ func (c *Connection) SendMsg(id uint32, data []byte) error {
 	if err != nil {
 		return errors.New(fmt.Sprintln("Pack msg error:", err))
 	}
-	_, err = c.GetTCPConnection().Write(binaryMsg)
-	if err != nil {
-		return errors.New(fmt.Sprintln("Send msg to client error:", err))
-	}
+	c.msgChan <- binaryMsg
 	return nil
 }
