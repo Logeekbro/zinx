@@ -26,6 +26,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 		MsgHandler: msgHandler,
 		isClosed:   false,
 		ExitChan:   make(chan bool, 1),
+		msgChan:    make(chan []byte),
 	}
 }
 
