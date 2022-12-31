@@ -25,6 +25,10 @@ func (s *Server) Start() {
 	fmt.Println("[Zinx]Version:", utils.GlobalObject.Version)
 	fmt.Printf("[Zinx]MaxConn: %d, MaxPackageSize: %d\n", utils.GlobalObject.MaxConn, utils.GlobalObject.MaxPackageSize)
 	// 服务器启动步骤
+	// 0、启动消息队列和worker工作池
+	if utils.GlobalObject.WorkerPoolSize > 0 {
+		s.MsgHandler.StartWorkerPool()
+	}
 	// 1、获取一个TCPAddr
 	addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 	if err != nil {
