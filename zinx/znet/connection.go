@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"zinx/utils"
 	"zinx/ziface"
 )
 
@@ -83,8 +84,14 @@ func (c *Connection) startReader() {
 			Conn: c,
 			msg:  msg,
 		}
-		// 根据MsgId找到对应的处理API 执行
-		go c.MsgHandler.DoMsgHandler(&request)
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			// 用户配置了工作池worker数则使用工作池处理request
+			c.MsgHandler.SendRequestToTaskQueue(&request)
+		} else {
+			// 否则根据MsgId找到对应的处理API 执行(不使用工作池)
+			go c.MsgHandler.DoMsgHandler(&request)
+		}
+
 	}
 }
 
