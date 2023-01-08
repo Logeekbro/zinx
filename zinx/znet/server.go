@@ -18,6 +18,8 @@ type Server struct {
 	Port uint16
 	// 当前server的消息管理模块，用来绑定MsgId和对应的业务处理业务API关系
 	MsgHandler ziface.IMsgHandle
+	// 当前server的连接管理模块
+	ConnMgr ziface.IConnManager
 }
 
 func (s *Server) Start() {
@@ -50,14 +52,25 @@ func (s *Server) Start() {
 			fmt.Println("Accept tcp error:", err)
 			continue
 		}
-		newConn := NewConnection(conn, connID, s.MsgHandler)
+		// 检查是否超过最大连接数
+		if s.ConnMgr.Size() >= utils.GlobalObject.MaxConn {
+			fmt.Println("[WARNING]Conn num over the limit, new conn will be close")
+			conn.Close()
+			continue
+		}
+		// 将连接加入连接管理模块中
+		newConn := NewConnection(s, conn, connID, s.MsgHandler)
+		s.ConnMgr.Add(newConn)
 		connID++
 		go newConn.Start()
 	}
 }
 
 func (s *Server) Stop() {
-	// TODO 将一些资源进行停止或回收
+	// 将一些资源进行停止或回收
+	fmt.Println("Close all conn...")
+	s.ConnMgr.CloseAll()
+	fmt.Println("All conn is closed!")
 }
 
 func (s *Server) Serve() {
@@ -72,7 +85,10 @@ func (s *Server) Serve() {
 
 func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
 	s.MsgHandler.AddRouter(msgId, router)
-	fmt.Println("Add Router success!")
+}
+
+func (s *Server) GetConnMgr() ziface.IConnManager {
+	return s.ConnMgr
 }
 
 // NewServer 初始化Server函数
@@ -88,5 +104,6 @@ func NewServer(name ...string) ziface.IServer {
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TcpPort,
 		MsgHandler: NewMsgHandler(),
+		ConnMgr:    NewConnManager(),
 	}
 }
