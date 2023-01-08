@@ -1,0 +1,7 @@
+{
+  "Name": "Zinx V0.9 demoServer",
+  "Host": "0.0.0.0",
+  "TcpPort": 6666,
+  "MaxConn": 3,
+  "WorkerPoolSize": 10
+}
