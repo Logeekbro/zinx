@@ -10,6 +10,7 @@ import (
 )
 
 type Connection struct {
+	BindServer ziface.IServer // 当前连接绑定的服务器
 	Conn       *net.TCPConn
 	ConnID     uint32
 	isClosed   bool
@@ -20,8 +21,9 @@ type Connection struct {
 
 var dp = NewDataPack()
 
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandle) *Connection {
 	return &Connection{
+		BindServer: server,
 		Conn:       conn,
 		ConnID:     connID,
 		MsgHandler: msgHandler,
@@ -111,9 +113,9 @@ func (c *Connection) Stop() {
 	}
 	c.Conn.Close()
 	// 回收资源
+	c.BindServer.GetConnMgr().Remove(c)
 	close(c.ExitChan)
 	close(c.msgChan)
-
 }
 
 func (c *Connection) GetTCPConnection() *net.TCPConn {
