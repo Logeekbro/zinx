@@ -29,7 +29,7 @@ func (c *ConnManager) Add(conn ziface.IConnection) {
 	defer c.connLock.Unlock()
 	// 将连接添加到连接集合中
 	c.connections[conn.GetConnID()] = conn
-	fmt.Printf("Add Conn(Id:%d) success, current conn num:%d", conn.GetConnID(), c.Size())
+	fmt.Printf("Add Conn(Id:%d) success, current conn num:%d\n", conn.GetConnID(), c.Size())
 }
 
 func (c *ConnManager) Remove(conn ziface.IConnection) {
@@ -38,7 +38,7 @@ func (c *ConnManager) Remove(conn ziface.IConnection) {
 	defer c.connLock.Unlock()
 	// 根据Id删除连接
 	delete(c.connections, conn.GetConnID())
-	fmt.Printf("Remove Conn(Id:%d) success, current conn num:%d", conn.GetConnID(), c.Size())
+	fmt.Printf("Remove Conn(Id:%d) success, current conn num:%d\n", conn.GetConnID(), c.Size())
 }
 
 func (c *ConnManager) Get(connId uint32) (ziface.IConnection, error) {
@@ -62,7 +62,7 @@ func (c *ConnManager) CloseAll() {
 	defer c.connLock.Unlock()
 	// 关闭并删除连接
 	for connId, conn := range c.connections {
-		// 关闭
+		//TODO 关闭, 存在死锁, 需要解决
 		conn.Stop()
 		// 删除
 		delete(c.connections, connId)
